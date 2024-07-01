@@ -5,7 +5,9 @@ from random import randint, uniform
 from pygame import Vector2, Vector3
 from Window import Window
 import numpy as np
+import opensimplex
 
+NOISE_SCALE = 8
 WINDOW_SIZE = Vector2(1200,800)
 WINDOW_SIZE2 = WINDOW_SIZE//2
 STAR_RANGE = WINDOW_SIZE*4
@@ -42,24 +44,37 @@ class Star:
 class Planet:
     def __init__(self):
         self.pos = Vector2(0,0)
-        self.color = (randint(1,255), randint(1,255), randint(1,255))
-        self.radius = 80
-        self.surface = pygame.Surface((self.radius*2, self.radius*2))
-        imgArray = np.zeros((self.radius*2, self.radius*2, 3))
+        self.primaryColor = (randint(1,255), randint(1,255), randint(1,255))
+        self.secondaryColor = (randint(1,255), randint(1,255), randint(1,255))
+        #self.secondaryColor = (self.primaryColor[0]+randint(-30,30), self.primaryColor[0]+randint(-30,30), self.primaryColor[0]+randint(-30,30))
+        self.radius = 100
+        diameter = self.radius*2
+        self.surface = pygame.Surface((diameter, diameter))
+        imgArray = np.zeros((diameter, diameter, 3))
 
-        imgArray[:,:] = self.color
+        #imgArray[:,:] = self.primaryColor
+        
+        opensimplex.seed(randint(0,1024))
+        noise = opensimplex.noise2array(np.array(range(diameter))/NOISE_SCALE, np.array(range(diameter))/NOISE_SCALE)
+        
+        for x in range(diameter):
+            for y in range(diameter):
+                imgArray[x,y] = (self.secondaryColor if noise[x,y]>0 else self.primaryColor)
 
         r2 = self.radius*self.radius
         for x in range(-self.radius, self.radius, 1):
             for y in range(-self.radius, self.radius, 1):
-                if x*x + y*y > r2:
+                d2 = x*x + y*y
+                if d2 > r2:
                     imgArray[self.radius+x,self.radius+y] = (0, 0, 0)
+                else:
+                    imgArray[self.radius+x,self.radius+y] *= 1-d2/r2
 
         pygame.surfarray.blit_array(self.surface, imgArray)
         self.surface.set_colorkey((0,0,0))
     
     def render(self):
-        #pygame.draw.circle(window.pgWindow, self.color, self.pos-player.pos+WINDOW_SIZE2, self.radius)
+        #pygame.draw.circle(window.pgWindow, self.primaryColor, self.pos-player.pos+WINDOW_SIZE2, self.radius)
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
 
 if __name__ == "__main__":
