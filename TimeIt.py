@@ -1,6 +1,7 @@
+import pygame
 class TimeIt:
     timer = 0
-    def stopwatch(message=None):
+    def stopwatch(self, message=None):
         if not message:
             self.timer = pygame.time.get_ticks()
             return

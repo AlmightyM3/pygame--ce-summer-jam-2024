@@ -27,4 +27,4 @@ class Window:
             else:
                 inputCallback(event)
         
-        self.DT = self.clock.tick(500)
+        self.DT = self.clock.tick(60)

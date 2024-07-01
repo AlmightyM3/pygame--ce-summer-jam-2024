@@ -5,9 +5,11 @@ from random import randint, uniform
 from pygame import Vector2, Vector3
 from Window import Window
 import numpy as np
-import opensimplex
+import opensimplex # type: ignore
 
-NOISE_SCALE = 8
+from TimeIt import TimeIt
+
+NOISE_SCALE = 4
 WINDOW_SIZE = Vector2(1200,800)
 WINDOW_SIZE2 = WINDOW_SIZE//2
 STAR_RANGE = WINDOW_SIZE*4
@@ -41,34 +43,33 @@ class Star:
         pos2D = Vector2((self.pos.x-player.pos.x+STAR_RANGE2.x)%STAR_RANGE.x-STAR_RANGE.x, (self.pos.y-player.pos.y+STAR_RANGE2.y)%STAR_RANGE.y-STAR_RANGE.y) / self.pos.z + WINDOW_SIZE
         pygame.draw.circle(window.pgWindow, (255,255,255), pos2D, 10/self.pos.z)
 
+#timer = TimeIt()
 class Planet:
-    def __init__(self):
-        self.pos = Vector2(0,0)
+    def __init__(self, startPos):
+        self.pos = startPos
         self.primaryColor = (randint(1,255), randint(1,255), randint(1,255))
         self.secondaryColor = (randint(1,255), randint(1,255), randint(1,255))
-        #self.secondaryColor = (self.primaryColor[0]+randint(-30,30), self.primaryColor[0]+randint(-30,30), self.primaryColor[0]+randint(-30,30))
+        
         self.radius = 100
         diameter = self.radius*2
         self.surface = pygame.Surface((diameter, diameter))
         imgArray = np.zeros((diameter, diameter, 3))
 
         #imgArray[:,:] = self.primaryColor
-        
+        #timer.stopwatch()
         opensimplex.seed(randint(0,1024))
-        noise = opensimplex.noise2array(np.array(range(diameter))/NOISE_SCALE, np.array(range(diameter))/NOISE_SCALE)
-        
-        for x in range(diameter):
-            for y in range(diameter):
-                imgArray[x,y] = (self.secondaryColor if noise[x,y]>0 else self.primaryColor)
+        size = np.array(range(self.radius+1))/NOISE_SCALE
+        noise = opensimplex.noise2array(size, size)
+        #timer.stopwatch("Generate noise")
 
         r2 = self.radius*self.radius
-        for x in range(-self.radius, self.radius, 1):
-            for y in range(-self.radius, self.radius, 1):
-                d2 = x*x + y*y
-                if d2 > r2:
-                    imgArray[self.radius+x,self.radius+y] = (0, 0, 0)
-                else:
-                    imgArray[self.radius+x,self.radius+y] *= 1-d2/r2
+        for x in range(diameter):
+            for y in range(diameter):
+                d2 = (x-self.radius)*(x-self.radius) + (y-self.radius)*(y-self.radius)
+                if d2 < r2:
+                    imgArray[x,y] = (self.secondaryColor if (noise[x//2,y//2]+noise[(x+1)//2,y//2]+noise[x//2,(y+1)//2]+noise[(x+1)//2,(y+1)//2])/4>0 else self.primaryColor)
+                    imgArray[x,y] *= 1-d2/r2
+        #timer.stopwatch("Color, crop to circle, and shade")
 
         pygame.surfarray.blit_array(self.surface, imgArray)
         self.surface.set_colorkey((0,0,0))
@@ -77,6 +78,19 @@ class Planet:
         #pygame.draw.circle(window.pgWindow, self.primaryColor, self.pos-player.pos+WINDOW_SIZE2, self.radius)
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
 
+# Still not what I'd like due to the lag spikes and sometimes uneven but predictable placement. I may try pre-placing a large number of planets on a grid and then shifting them slightly to make it appear random
+def tryAddPlanet():
+    minDist = 1000000000000
+    minPos = Vector2()
+    for planet in planets:
+        currentDist = (planet.pos.x-player.pos.x)*(planet.pos.x-player.pos.x) + (planet.pos.y-player.pos.y)*(planet.pos.y-player.pos.y)
+        if currentDist < minDist:
+            minDist = currentDist
+            minPos = planet.pos
+
+    if minDist > 1000*1000:
+        planets.append(Planet(player.pos+(-minPos+player.pos).normalize()*800))
+
 if __name__ == "__main__":
     def input(input):
         pass
@@ -84,14 +98,16 @@ if __name__ == "__main__":
     window = Window("It works?", WINDOW_SIZE)
     player = Player(Vector2(0,0), Vector2(64,64), "/player.png")
     stars = [Star() for i in range(300)]
-    testPlanet = Planet()
+    planets = [Planet(Vector2())]
 
     while window.run:
         player.update()
+        tryAddPlanet()
         
         window.pgWindow.fill((0,0,0))
         for star in stars:
             star.render()
-        testPlanet.render()
+        for planet in planets:
+            planet.render()
         player.render()
         window.update(input)
