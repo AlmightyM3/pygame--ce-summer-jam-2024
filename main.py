@@ -12,8 +12,9 @@ WINDOW_SIZE = Vector2(1200,800)
 WINDOW_SIZE2 = WINDOW_SIZE//2
 STAR_RANGE = WINDOW_SIZE*4
 STAR_RANGE2 = WINDOW_SIZE*2
-MIN_RADIUS = 80
-MAX_RADIUS = 120
+MIN_RADIUS = 45
+MAX_RADIUS = 70
+MULTI_THREAD = True
 
 dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
@@ -60,13 +61,6 @@ class Planet:
         self.surface = pygame.Surface((diameter, diameter))
         imgArray = np.zeros((diameter, diameter, 3))
 
-        #imgArray[:,:] = self.primaryColor
-        #timer.stopwatch()
-        #opensimplex.seed(randint(0,1024))
-        #size = np.array(range(self.radius+1))/NOISE_SCALE
-        #noise = opensimplex.noise2array(size, size)
-        #timer.stopwatch("Generate noise")
-
         w = uniform(-0.4,0.4)
         r2 = self.radius*self.radius
         for x in range(diameter):
@@ -79,18 +73,36 @@ class Planet:
 
         pygame.surfarray.blit_array(self.surface, imgArray)
         self.surface.set_colorkey((0,0,0))
+        self.surface = pygame.transform.smoothscale_by(self.surface,2)
     
     def render(self):
         #pygame.draw.circle(window.pgWindow, self.primaryColor, self.pos-player.pos+WINDOW_SIZE2, self.radius)
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
-    
+
+import threading 
 def genPlanets():
     global planets
     r = range(-13000, 13000, 1300)
-
-    for x in r:
-        for y in r:
-            planets.append(Planet(Vector2(x+randint(-400,400),y+randint(-400,400)), choice(noiseImgs)))
+    
+    if MULTI_THREAD:
+        def subGenPlanets(rx,ry):
+            for x in rx:
+                for y in ry:
+                    planets.append(Planet(Vector2(x+randint(-400,400),y+randint(-400,400)), choice(noiseImgs)))
+        t1 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[:len(r)//2]))
+        t2 = threading.Thread(target=subGenPlanets, args=(r[len(r)//2+1:], r[:len(r)//2]))
+        t3 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[len(r)//2+1:]))
+        t1.start()
+        t2.start()
+        t3.start()
+        subGenPlanets(r[len(r)//2+1:], r[len(r)//2+1:])
+        t1.join()
+        t2.join()
+        t3.join()
+    else:
+        for x in r:
+            for y in r:
+                planets.append(Planet(Vector2(x+randint(-400,400),y+randint(-400,400)), choice(noiseImgs)))
 
 def genNoise(num):
     for i in range(num):
