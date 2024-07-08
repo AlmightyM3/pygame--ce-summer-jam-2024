@@ -15,6 +15,9 @@ STAR_RANGE2 = WINDOW_SIZE*2
 MIN_RADIUS = 45
 MAX_RADIUS = 70
 MULTI_THREAD = True
+PLAYER_ACCEL = 0.5
+PLAYER_VELO_MAX = 1.4
+PLAYER_DECEL = 0.005
 
 dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
@@ -36,9 +39,9 @@ class Player:
     
     def update(self):
         if pygame.mouse.get_pressed()[0]:
-            self.velocity = (self.velocity+(pygame.mouse.get_pos()-WINDOW_SIZE2).clamp_magnitude(0.5*window.DT)).clamp_magnitude(1.4)
+            self.velocity = (self.velocity+(pygame.mouse.get_pos()-WINDOW_SIZE2).clamp_magnitude(PLAYER_ACCEL*window.DT)).clamp_magnitude(PLAYER_VELO_MAX)
         else:
-            self.velocity *= 0.96
+            self.velocity *= (1-PLAYER_DECEL*window.DT)
         self.pos += self.velocity*window.DT
 
 class Star:
