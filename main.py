@@ -82,6 +82,30 @@ class Planet:
         #pygame.draw.circle(window.pgWindow, self.primaryColor, self.pos-player.pos+WINDOW_SIZE2, self.radius)
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
 
+class Enemy:
+    def __init__(self, startPos, size, moveingImgPath, stopedIngImgPath):
+        self.pos = startPos
+        self.size = size
+        self.moveingImg = pygame.transform.scale_by(pygame.image.load(dirPath+moveingImgPath), size).convert_alpha()
+        self.stopedImg = pygame.transform.scale_by(pygame.image.load(dirPath+stopedIngImgPath), size).convert_alpha()
+        self.velocity = Vector2()
+        self.homePos = startPos
+
+    def render(self):
+        angle = int(math.degrees(-math.atan2(player.pos.y - self.pos.y, player.pos.x - self.pos.x)))-90
+        rotatedImg = pygame.transform.rotate(self.moveingImg, angle)
+        window.pgWindow.blit(rotatedImg, self.pos+WINDOW_SIZE2-(rotatedImg.get_rect().center)-player.pos)
+    
+    def update(self):
+        if (player.pos-self.homePos).magnitude_squared() < 300*300:
+            self.velocity = (player.pos-self.pos).normalize()*0.04*window.DT
+        elif self.pos != self.homePos:
+            self.velocity = (self.homePos-self.pos).normalize()*0.04*window.DT
+        else:
+            self.velocity = Vector2()
+        self.pos += self.velocity*window.DT
+
+
 import threading 
 def genPlanets():
     global planets
@@ -137,14 +161,17 @@ if __name__ == "__main__":
     timer.stopwatch()
     genPlanets()
     timer.stopwatch("Gen planets.")
+    testEnemy = Enemy(Vector2(300,300), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
 
     while window.run:
         player.update()
+        testEnemy.update()
         
         window.pgWindow.fill((0,0,0))
         for star in stars:
             star.render()
         for planet in planets:
             planet.render()
+        testEnemy.render()
         player.render()
         window.update(input)
