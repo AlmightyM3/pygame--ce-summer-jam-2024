@@ -89,20 +89,27 @@ class Enemy:
         self.moveingImg = pygame.transform.scale_by(pygame.image.load(dirPath+moveingImgPath), size).convert_alpha()
         self.stopedImg = pygame.transform.scale_by(pygame.image.load(dirPath+stopedIngImgPath), size).convert_alpha()
         self.velocity = Vector2()
-        self.homePos = startPos
+        self.homePos = startPos+Vector2()
+        self.mode = 0
 
     def render(self):
-        angle = int(math.degrees(-math.atan2(player.pos.y - self.pos.y, player.pos.x - self.pos.x)))-90
-        rotatedImg = pygame.transform.rotate(self.moveingImg, angle)
+        if self.mode<2:
+            angle = int(math.degrees(-math.atan2(player.pos.y - self.pos.y, player.pos.x - self.pos.x)))-90
+        else:
+            angle = int(math.degrees(-math.atan2(self.homePos.y - self.pos.y, self.homePos.x - self.pos.x)))-90
+        rotatedImg = pygame.transform.rotate(self.stopedImg if self.mode == 0 else self.moveingImg, angle)
         window.pgWindow.blit(rotatedImg, self.pos+WINDOW_SIZE2-(rotatedImg.get_rect().center)-player.pos)
     
     def update(self):
-        if (player.pos-self.homePos).magnitude_squared() < 300*300:
+        if (player.pos-self.homePos).magnitude_squared() < 500*500:
             self.velocity = (player.pos-self.pos).normalize()*0.04*window.DT
-        elif self.pos != self.homePos:
+            self.mode = 1
+        elif (self.pos-self.homePos).magnitude_squared() > 100:
             self.velocity = (self.homePos-self.pos).normalize()*0.04*window.DT
+            self.mode = 2
         else:
             self.velocity = Vector2()
+            self.mode = 0
         self.pos += self.velocity*window.DT
 
 
@@ -161,7 +168,7 @@ if __name__ == "__main__":
     timer.stopwatch()
     genPlanets()
     timer.stopwatch("Gen planets.")
-    testEnemy = Enemy(Vector2(300,300), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
+    testEnemy = Enemy(Vector2(500,500), 1/24, "/EvilSpaceship3On.png", "/EvilSpaceship3.png")
 
     while window.run:
         player.update()
