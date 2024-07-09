@@ -55,11 +55,11 @@ class Star:
 #timer = TimeIt()
 class Planet:
     def __init__(self, startPos, noise):
-        self.pos = startPos
         self.primaryColor = (randint(1,255), randint(1,255), randint(1,255))
         self.secondaryColor = (randint(1,255), randint(1,255), randint(1,255))
         
         self.radius = randint(MIN_RADIUS, MAX_RADIUS)
+        self.pos = startPos-Vector2(self.radius)
         diameter = self.radius*2
         self.surface = pygame.Surface((diameter, diameter))
         imgArray = np.zeros((diameter, diameter, 3))
@@ -83,11 +83,10 @@ class Planet:
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
 
 class Enemy:
-    def __init__(self, startPos, size, moveingImgPath, stopedIngImgPath):
-        self.pos = startPos
-        self.size = size
-        self.moveingImg = pygame.transform.scale_by(pygame.image.load(dirPath+moveingImgPath), size).convert_alpha()
-        self.stopedImg = pygame.transform.scale_by(pygame.image.load(dirPath+stopedIngImgPath), size).convert_alpha()
+    def __init__(self, startPos, moveingImg, stopedIng):
+        self.pos = startPos+Vector2()
+        self.moveingImg = moveingImg
+        self.stopedImg = stopedIng
         self.velocity = Vector2()
         self.homePos = startPos+Vector2()
         self.mode = 0
@@ -104,12 +103,16 @@ class Enemy:
         if (player.pos-self.homePos).magnitude_squared() < 500*500:
             self.velocity = (player.pos-self.pos).normalize()*0.04*window.DT
             self.mode = 1
-        elif (self.pos-self.homePos).magnitude_squared() > 100:
+            if (player.pos-self.pos).magnitude_squared() < 50*50:
+                global gameOver
+                gameOver = True
+        elif (self.pos-self.homePos).magnitude_squared() > MIN_RADIUS*MIN_RADIUS:
             self.velocity = (self.homePos-self.pos).normalize()*0.04*window.DT
             self.mode = 2
         else:
             self.velocity = Vector2()
             self.mode = 0
+        #print(self.mode)
         self.pos += self.velocity*window.DT
 
 
@@ -119,24 +122,37 @@ def genPlanets():
     r = range(-13000, 13000, 1300)
     
     if MULTI_THREAD:
-        def subGenPlanets(rx,ry):
+        def subGenPlanets(rx,ry, main):
             for x in rx:
                 for y in ry:
-                    planets.append(Planet(Vector2(x+randint(-400,400),y+randint(-400,400)), choice(noiseImgs)))
-        t1 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[:len(r)//2]))
-        t2 = threading.Thread(target=subGenPlanets, args=(r[len(r)//2+1:], r[:len(r)//2]))
-        t3 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[len(r)//2+1:]))
+                    pos = Vector2(x+randint(-400,400),y+randint(-400,400))
+                    planets.append(Planet(pos, choice(noiseImgs)))
+                    enemys.append(Enemy(pos,enemyMoveingImg2, enemyStopedImg1))
+                if main:
+                    window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((rx.index(x)+1)/len(rx)), 50)))
+                    window.update(input)
+                if not window.run:
+                    return
+        t1 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[:len(r)//2], False))
+        t2 = threading.Thread(target=subGenPlanets, args=(r[len(r)//2+1:], r[:len(r)//2], False))
+        t3 = threading.Thread(target=subGenPlanets, args=(r[:len(r)//2], r[len(r)//2+1:], False))
         t1.start()
         t2.start()
         t3.start()
-        subGenPlanets(r[len(r)//2+1:], r[len(r)//2+1:])
+        subGenPlanets(r[len(r)//2+1:], r[len(r)//2+1:], True)
         t1.join()
         t2.join()
         t3.join()
     else:
         for x in r:
             for y in r:
-                planets.append(Planet(Vector2(x+randint(-400,400),y+randint(-400,400)), choice(noiseImgs)))
+                pos = Vector2(x+randint(-400,400),y+randint(-400,400))
+                planets.append(Planet(pos, choice(noiseImgs)))
+                enemys.append(Enemy(pos,enemyMoveingImg2, enemyStopedImg1))
+            window.update(input)
+            window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
+            if not window.run:
+                return
 
 def genNoise(num):
     for i in range(num):
@@ -164,21 +180,32 @@ if __name__ == "__main__":
         noiseImgs = os.listdir(f"{dirPath}/noise")
 
     noiseImgs = [np.add(np.multiply(np.array(Image.open(f"{dirPath}/noise/{i}")), 2), -1) for i in noiseImgs]
+    
+    enemyStopedImg1 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3.png"), 1/24).convert_alpha()
+    enemyMoveingImg2 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3On.png"), 1/24).convert_alpha()
+    enemys = []#Enemy(Vector2(500,500),enemyMoveingImg2, enemyStopedImg1)
+    
     timer = TimeIt()
     timer.stopwatch()
     genPlanets()
     timer.stopwatch("Gen planets.")
-    testEnemy = Enemy(Vector2(500,500), 1/24, "/EvilSpaceship3On.png", "/EvilSpaceship3.png")
+
+    gameOver = False
 
     while window.run:
+        if gameOver:
+            window.update(input)
+            continue
         player.update()
-        testEnemy.update()
+        for enemy in enemys:
+            enemy.update()
         
         window.pgWindow.fill((0,0,0))
         for star in stars:
             star.render()
         for planet in planets:
             planet.render()
-        testEnemy.render()
+        for enemy in enemys:
+            enemy.render()
         player.render()
         window.update(input)
