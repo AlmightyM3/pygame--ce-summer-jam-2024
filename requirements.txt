@@ -1,0 +1,4 @@
+numpy==2.0.0
+opensimplex==0.4.5.1
+Pillow==10.1.0
+pygame-ce==2.5.0

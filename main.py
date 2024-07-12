@@ -5,8 +5,6 @@ from Window import Window
 from PIL import Image
 
 
-from TimeIt import TimeIt
-
 NOISE_SCALE = 18
 WINDOW_SIZE = Vector2(1200,800)
 WINDOW_SIZE2 = WINDOW_SIZE//2
@@ -46,10 +44,10 @@ class Player:
 
 class Star:
     def __init__(self):
-        self.pos = Vector3(randint(-STAR_RANGE2.x, STAR_RANGE2.x), randint(-STAR_RANGE2.y, STAR_RANGE2.y), uniform(1,4))
+        self.pos = Vector3(randint(int(-STAR_RANGE2.x), int(STAR_RANGE2.x)), randint(int(-STAR_RANGE2.x), int(STAR_RANGE2.x)), uniform(1,4))
     
     def render(self):
-        pos2D = Vector2((self.pos.x-player.pos.x+STAR_RANGE2.x)%STAR_RANGE.x-STAR_RANGE.x, (self.pos.y-player.pos.y+STAR_RANGE2.y)%STAR_RANGE.y-STAR_RANGE.y) / self.pos.z + WINDOW_SIZE
+        pos2D = Vector2((self.pos.x-player.pos.x+STAR_RANGE2.x)%STAR_RANGE.x-STAR_RANGE2.x, (self.pos.y-player.pos.y+STAR_RANGE2.y)%STAR_RANGE.y-STAR_RANGE2.y) / self.pos.z + WINDOW_SIZE2
         pygame.draw.circle(window.pgWindow, (255,255,255), pos2D, 10/self.pos.z)
 
 #timer = TimeIt()
@@ -191,9 +189,10 @@ if __name__ == "__main__":
     
     genPlanets()
 
-    pygame.mixer.music.set_volume(0.83)
-    pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
-    pygame.mixer.music.play()
+    if window.run:
+        pygame.mixer.music.set_volume(0.83)
+        pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
+        pygame.mixer.music.play()
 
     lives = 3
     progress = 0.0
@@ -204,6 +203,11 @@ if __name__ == "__main__":
             window.update(input)
             continue
         elif progress >= 3000:
+            window.pgWindow.fill((0,0,0))
+            for star in stars:
+                star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z-window.DT/500)%4)
+                star.render()
+            player.render()
             window.update(input)
             continue
         player.update()
