@@ -104,8 +104,9 @@ class Enemy:
             self.velocity = (player.pos-self.pos).normalize()*0.04*window.DT
             self.mode = 1
             if (player.pos-self.pos).magnitude_squared() < 50*50:
-                global gameOver
-                gameOver = True
+                global lives
+                lives -= 1
+                enemys.remove(self)
         elif (self.pos-self.homePos).magnitude_squared() > MIN_RADIUS*MIN_RADIUS:
             self.velocity = (self.homePos-self.pos).normalize()*0.04*window.DT
             self.mode = 2
@@ -171,6 +172,9 @@ if __name__ == "__main__":
     window = Window("It works?", WINDOW_SIZE)
     window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
     window.update(input)
+    pygame.mixer.init()
+    pygame.mixer.music.load(f"{dirPath}/loading.mp3")
+    pygame.mixer.music.play()
     player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
     stars = [Star() for i in range(300)]
     planets = []
@@ -185,21 +189,39 @@ if __name__ == "__main__":
     enemyMoveingImg2 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3On.png"), 1/24).convert_alpha()
     enemys = []#Enemy(Vector2(500,500),enemyMoveingImg2, enemyStopedImg1)
     
-    timer = TimeIt()
-    timer.stopwatch()
     genPlanets()
-    timer.stopwatch("Gen planets.")
 
-    gameOver = False
+    pygame.mixer.music.set_volume(0.83)
+    pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
+    pygame.mixer.music.play()
+
+    lives = 3
+    progress = 0.0
 
     while window.run:
-        if gameOver:
+        if lives <= 0:
+            pygame.mixer.music.stop() 
+            window.update(input)
+            continue
+        elif progress >= 3000:
             window.update(input)
             continue
         player.update()
         for enemy in enemys:
             enemy.update()
-        
+
+        onPlanet = False
+        for planet in planets:
+            if (player.pos-planet.pos-Vector2(planet.radius)).magnitude_squared() <= planet.radius*planet.radius*4:
+                onPlanet = True
+                break
+        if onPlanet:
+            progress+=window.DT
+            if progress >= 3000:
+                pygame.mixer.music.set_volume(1)
+                pygame.mixer.music.load(f"{dirPath}/LevelComplete.mp3")
+                pygame.mixer.music.play()
+
         window.pgWindow.fill((0,0,0))
         for star in stars:
             star.render()
@@ -208,4 +230,8 @@ if __name__ == "__main__":
         for enemy in enemys:
             enemy.render()
         player.render()
+
+        window.pgWindow.fill((0,255,0), rect=pygame.Rect((95,45),((WINDOW_SIZE.x-190), 60)))
+        window.pgWindow.fill((0,0,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200), 50)))
+        window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200)*((progress)/3000), 50)))
         window.update(input)
