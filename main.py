@@ -81,12 +81,12 @@ class Planet:
         window.pgWindow.blit(self.surface, self.pos-player.pos+WINDOW_SIZE2-Vector2(self.radius))
 
 class Enemy:
-    def __init__(self, startPos, moveingImg, stopedIng):
+    def __init__(self, startPos, homePos, moveingImg, stopedIng):
         self.pos = startPos+Vector2()
         self.moveingImg = moveingImg
         self.stopedImg = stopedIng
         self.velocity = Vector2()
-        self.homePos = startPos+Vector2()
+        self.homePos = homePos+Vector2()
         self.mode = 0
 
     def render(self):
@@ -126,7 +126,7 @@ def genPlanets():
                 for y in ry:
                     pos = Vector2(x+randint(-400,400),y+randint(-400,400))
                     planets.append(Planet(pos, choice(noiseImgs)))
-                    enemys.append(Enemy(pos,enemyMoveingImg2, enemyStopedImg1))
+                    enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
                 if main:
                     window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((rx.index(x)+1)/len(rx)), 50)))
                     window.update(input)
@@ -147,7 +147,7 @@ def genPlanets():
             for y in r:
                 pos = Vector2(x+randint(-400,400),y+randint(-400,400))
                 planets.append(Planet(pos, choice(noiseImgs)))
-                enemys.append(Enemy(pos,enemyMoveingImg2, enemyStopedImg1))
+                enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
             window.update(input)
             window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
             if not window.run:
@@ -189,6 +189,10 @@ if __name__ == "__main__":
     
     genPlanets()
 
+    fuelIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Fuel.png"), 1/24).convert_alpha()
+    lifeIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Lives.png"), 1/24).convert_alpha()
+    winPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/SpaceshipFacingCameraOn.png"), 1/32).convert_alpha()
+    
     if window.run:
         pygame.mixer.music.set_volume(0.83)
         pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
@@ -202,12 +206,12 @@ if __name__ == "__main__":
             pygame.mixer.music.stop() 
             window.update(input)
             continue
-        elif progress >= 3000:
+        elif progress >= 2500:
             window.pgWindow.fill((0,0,0))
             for star in stars:
-                star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z-window.DT/500)%4)
+                star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z+window.DT/500)%4)
                 star.render()
-            player.render()
+            window.pgWindow.blit(winPlayer, WINDOW_SIZE2-winPlayer.get_rect().center)
             window.update(input)
             continue
         player.update()
@@ -218,10 +222,13 @@ if __name__ == "__main__":
         for planet in planets:
             if (player.pos-planet.pos-Vector2(planet.radius)).magnitude_squared() <= planet.radius*planet.radius*4:
                 onPlanet = True
+                if uniform(0,1)>0.95:
+                    angle = uniform(0,math.pi*2)
+                    enemys.append(Enemy(planet.pos+Vector2(math.cos(angle)*MAX_RADIUS*4, math.sin(angle)*MAX_RADIUS*4),planet.pos,enemyMoveingImg2, enemyStopedImg1))
                 break
         if onPlanet:
             progress+=window.DT
-            if progress >= 3000:
+            if progress >= 2500:
                 pygame.mixer.music.set_volume(1)
                 pygame.mixer.music.load(f"{dirPath}/LevelComplete.mp3")
                 pygame.mixer.music.play()
@@ -235,7 +242,10 @@ if __name__ == "__main__":
             enemy.render()
         player.render()
 
-        window.pgWindow.fill((0,255,0), rect=pygame.Rect((95,45),((WINDOW_SIZE.x-190), 60)))
-        window.pgWindow.fill((0,0,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200), 50)))
-        window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200)*((progress)/3000), 50)))
+        window.pgWindow.fill((255,0,255), rect=pygame.Rect((85,45),((WINDOW_SIZE.x-190), 60)))
+        window.pgWindow.fill((0,0,0), rect=pygame.Rect((90,50),((WINDOW_SIZE.x-200), 50)))
+        window.pgWindow.fill((255,0,255), rect=pygame.Rect((90,50),((WINDOW_SIZE.x-200)*((progress)/2500), 50)))
+        window.pgWindow.blit(fuelIcon, Vector2(55,80)-fuelIcon.get_rect().center)
+        for i in range(lives):
+            window.pgWindow.blit(lifeIcon, Vector2(WINDOW_SIZE.x-60,80+i*75)-lifeIcon.get_rect().center)
         window.update(input)
