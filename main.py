@@ -1,9 +1,16 @@
-import math, os, pygame, opensimplex, numpy as np
+# /// script
+# requires-python = ">=3.12"
+# dependencies = [
+#   "numpy",
+#   "Pillow",
+#   "pygame-ce",
+# ]
+# ///
+import math, os, pygame, numpy, asyncio
 from random import randint, uniform, choice
 from pygame import Vector2, Vector3
 from Window import Window
 from PIL import Image
-
 
 NOISE_SCALE = 18
 WINDOW_SIZE = Vector2(1200,800)
@@ -16,6 +23,9 @@ MULTI_THREAD = True
 PLAYER_ACCEL = 0.5
 PLAYER_VELO_MAX = 1.4
 PLAYER_DECEL = 0.005
+WEB = True
+if not WEB:
+    import opensimplex
 
 dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
@@ -60,7 +70,7 @@ class Planet:
         self.pos = startPos-Vector2(self.radius)
         diameter = self.radius*2
         self.surface = pygame.Surface((diameter, diameter))
-        imgArray = np.zeros((diameter, diameter, 3))
+        imgArray = numpy.zeros((diameter, diameter, 3))
 
         w = uniform(-0.4,0.4)
         r2 = self.radius*self.radius
@@ -116,11 +126,11 @@ class Enemy:
 
 
 import threading 
-def genPlanets():
+async def genPlanets():
     global planets
     r = range(-13000, 13000, 1300)
     
-    if MULTI_THREAD:
+    if MULTI_THREAD and not WEB:
         def subGenPlanets(rx,ry, main):
             for x in rx:
                 for y in ry:
@@ -149,6 +159,7 @@ def genPlanets():
                 planets.append(Planet(pos, choice(noiseImgs)))
                 enemys.append(Enemy(pos,enemyMoveingImg2, enemyStopedImg1))
             window.update(input)
+            await asyncio.sleep(0)
             window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
             if not window.run:
                 return
@@ -156,59 +167,29 @@ def genPlanets():
 def genNoise(num):
     for i in range(num):
         opensimplex.seed(randint(0,1024))
-        size = np.array(range(MAX_RADIUS+1))/NOISE_SCALE
+        size = numpy.array(range(MAX_RADIUS+1))/NOISE_SCALE
         noise = opensimplex.noise2array(size, size)
-        img = Image.fromarray(np.multiply(np.add(noise,1),1/2))
+        img = Image.fromarray(numpy.multiply(numpy.add(noise,1),1/2))
         img.save(f"{dirPath}/noise/{i}.tiff")
         print(i)
 
 
-if __name__ == "__main__":
-    def input(input):
-        pass
-
-    window = Window("It works?", WINDOW_SIZE)
-    window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
-    window.update(input)
-    pygame.mixer.init()
-    pygame.mixer.music.load(f"{dirPath}/loading.mp3")
-    pygame.mixer.music.play()
-    player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
-    stars = [Star() for i in range(300)]
-    planets = []
-    noiseImgs = os.listdir(f"{dirPath}/noise")
-    if not noiseImgs:
-        genNoise(32)
-        noiseImgs = os.listdir(f"{dirPath}/noise")
-
-    noiseImgs = [np.add(np.multiply(np.array(Image.open(f"{dirPath}/noise/{i}")), 2), -1) for i in noiseImgs]
-    
-    enemyStopedImg1 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3.png"), 1/24).convert_alpha()
-    enemyMoveingImg2 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3On.png"), 1/24).convert_alpha()
-    enemys = []#Enemy(Vector2(500,500),enemyMoveingImg2, enemyStopedImg1)
-    
-    genPlanets()
-
-    if window.run:
-        pygame.mixer.music.set_volume(0.83)
-        pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
-        pygame.mixer.music.play()
-
-    lives = 3
-    progress = 0.0
-
+async def loop():
+    global lives, progress
     while window.run:
         if lives <= 0:
             pygame.mixer.music.stop() 
             window.update(input)
+            await asyncio.sleep(0)
             continue
         elif progress >= 3000:
             window.pgWindow.fill((0,0,0))
             for star in stars:
-                star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z-window.DT/500)%4)
+                star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z+window.DT/500)%4)
                 star.render()
             player.render()
             window.update(input)
+            await asyncio.sleep(0)
             continue
         player.update()
         for enemy in enemys:
@@ -239,3 +220,44 @@ if __name__ == "__main__":
         window.pgWindow.fill((0,0,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200), 50)))
         window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,50),((WINDOW_SIZE.x-200)*((progress)/3000), 50)))
         window.update(input)
+        await asyncio.sleep(0)
+
+
+if __name__ == "__main__":
+    def input(input):
+        pass
+
+    window = Window("It works?", WINDOW_SIZE)
+    window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
+    window.update(input)
+    pygame.mixer.init()
+    pygame.mixer.music.load(f"{dirPath}/loading.mp3")
+    pygame.mixer.music.play()
+    player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
+    stars = [Star() for i in range(300)]
+    planets = []
+    noiseImgs = os.listdir(f"{dirPath}/noise")
+    if not noiseImgs:
+        if WEB:
+            print("can't gen noise in web mode")
+        else:
+            genNoise(32)
+            noiseImgs = os.listdir(f"{dirPath}/noise")
+
+    noiseImgs = [numpy.add(numpy.multiply(numpy.array(Image.open(f"{dirPath}/noise/{i}")), 2), -1) for i in noiseImgs]
+    
+    enemyStopedImg1 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3.png"), 1/24).convert_alpha()
+    enemyMoveingImg2 = pygame.transform.scale_by(pygame.image.load(dirPath+"/EvilSpaceship3On.png"), 1/24).convert_alpha()
+    enemys = []#Enemy(Vector2(500,500),enemyMoveingImg2, enemyStopedImg1)
+    
+    asyncio.run(genPlanets())
+
+    if window.run:
+        pygame.mixer.music.set_volume(0.83)
+        pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
+        pygame.mixer.music.play()
+
+    lives = 3
+    progress = 0.0
+    asyncio.run(loop())
+
