@@ -171,7 +171,7 @@ def genNoise(num):
 
 def restart():
     global player, stars, planets, enemys, lives, progress
-    window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
+    window.pgWindow.blit(pygame.image.load(dirPath+"/loadingV2.png"), (0,0))
     window.update(input)
     pygame.mixer.music.load(f"{dirPath}/loading.mp3")
     pygame.mixer.music.play()
@@ -185,9 +185,9 @@ def restart():
         pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
         pygame.mixer.music.play()
 
-    lives = 3
-    progress = 0.0
-    pygame.event.set_grab(True)
+        lives = 3
+        progress = 0.0
+        pygame.event.set_grab(True)
 
 if __name__ == "__main__":
     def input(input):
@@ -220,18 +220,18 @@ if __name__ == "__main__":
     
     genPlanets()
 
-    fuelIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Fuel.png"), 1/24).convert_alpha()
-    lifeIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Lives.png"), 1/24).convert_alpha()
-    winPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/SpaceshipFacingCameraOn.png"), 1/32).convert_alpha()
-    winText = pygame.image.load(dirPath+"/Win.png")
-    winText.set_colorkey((0,0,0))
-    winText.convert_alpha()
-    lossPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/PlayerExplosion.png"), 1/24).convert_alpha()
-    lossText = pygame.image.load(dirPath+"/Loss.png")
-    lossText.set_colorkey((0,0,0))
-    lossText.convert_alpha()
-    
     if window.run:
+        fuelIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Fuel.png"), 1/24).convert_alpha()
+        lifeIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Lives.png"), 1/24).convert_alpha()
+        winPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/SpaceshipFacingCameraOn.png"), 1/32).convert_alpha()
+        winText = pygame.image.load(dirPath+"/Win.png")
+        winText.set_colorkey((0,0,0))
+        winText.convert_alpha()
+        lossPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/PlayerExplosion.png"), 1/24).convert_alpha()
+        lossText = pygame.image.load(dirPath+"/Loss.png")
+        lossText.set_colorkey((0,0,0))
+        lossText.convert_alpha()
+    
         pygame.mixer.music.set_volume(0.83)
         pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
         pygame.mixer.music.play()
@@ -239,9 +239,9 @@ if __name__ == "__main__":
         bumpEffect = pygame.mixer.Sound(f"{dirPath}/Explosion.mp3")
         bumpChannel = pygame.mixer.Channel(0)
 
-    lives = 3
-    progress = 0.0
-    pygame.event.set_grab(True)
+        lives = 3
+        progress = 0.0
+        pygame.event.set_grab(True)
 
     while window.run:
         if lives < 0:
