@@ -16,7 +16,7 @@ MULTI_THREAD = True
 PLAYER_ACCEL = 0.5
 PLAYER_VELO_MAX = 1.4
 PLAYER_DECEL = 0.005
-TARGET_FUEL = 5000
+TARGET_FUEL = 6300
 
 dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
@@ -106,6 +106,12 @@ class Enemy:
                 global lives
                 lives -= 1
                 enemys.remove(self)
+                if lives < 0:
+                    pygame.mixer.music.set_volume(1)
+                    pygame.mixer.music.load(f"{dirPath}/Fail.mp3")
+                    pygame.mixer.music.play()
+                else:
+                    bumpChannel.play(bumpEffect)
         elif (self.pos-self.homePos).magnitude_squared() > MIN_RADIUS*MIN_RADIUS:
             self.velocity = (self.homePos-self.pos).normalize()*0.04*window.DT
             self.mode = 2
@@ -127,7 +133,7 @@ def genPlanets():
                 for y in ry:
                     pos = Vector2(x+randint(-400,400),y+randint(-400,400))
                     planets.append(Planet(pos, choice(noiseImgs)))
-                    enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
+                    #enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
                 if main:
                     window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((rx.index(x)+1)/len(rx)), 50)))
                     window.update(input)
@@ -148,7 +154,7 @@ def genPlanets():
             for y in r:
                 pos = Vector2(x+randint(-400,400),y+randint(-400,400))
                 planets.append(Planet(pos, choice(noiseImgs)))
-                enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
+                #enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
             window.update(input)
             window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
             if not window.run:
@@ -163,16 +169,39 @@ def genNoise(num):
         img.save(f"{dirPath}/noise/{i}.tiff")
         print(i)
 
+def restart():
+    global player, stars, planets, enemys, lives, progress
+    window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
+    window.update(input)
+    pygame.mixer.music.load(f"{dirPath}/loading.mp3")
+    pygame.mixer.music.play()
+    player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
+    stars = [Star() for i in range(300)]
+    planets = []
+    enemys = []
+    genPlanets()
+    if window.run:
+        pygame.mixer.music.set_volume(0.83)
+        pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
+        pygame.mixer.music.play()
+
+    lives = 3
+    progress = 0.0
+    pygame.event.set_grab(True)
 
 if __name__ == "__main__":
     def input(input):
         pass
+    def gameOverinput(input):
+        if input.type == pygame.KEYDOWN: # or input.type == pygame.MOUSEBUTTONDOWN 
+            restart()
 
     window = Window("It works?", WINDOW_SIZE)
     window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
     window.update(input)
     pygame.mixer.init()
     pygame.mixer.music.load(f"{dirPath}/loading.mp3")
+    pygame.mixer.music.set_volume(1)
     pygame.mixer.music.play()
     player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
     stars = [Star() for i in range(300)]
@@ -193,27 +222,49 @@ if __name__ == "__main__":
     fuelIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Fuel.png"), 1/24).convert_alpha()
     lifeIcon = pygame.transform.scale_by(pygame.image.load(dirPath+"/Lives.png"), 1/24).convert_alpha()
     winPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/SpaceshipFacingCameraOn.png"), 1/32).convert_alpha()
+    winText = pygame.image.load(dirPath+"/Win.png")
+    winText.set_colorkey((0,0,0))
+    winText.convert_alpha()
+    lossPlayer = pygame.transform.scale_by(pygame.image.load(dirPath+"/PlayerExplosion.png"), 1/24).convert_alpha()
+    lossText = pygame.image.load(dirPath+"/Loss.png")
+    lossText.set_colorkey((0,0,0))
+    lossText.convert_alpha()
     
     if window.run:
         pygame.mixer.music.set_volume(0.83)
         pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
         pygame.mixer.music.play()
+        pygame.mixer.set_num_channels(4)
+        bumpEffect = pygame.mixer.Sound("Explosion.mp3")
+        bumpChannel = pygame.mixer.Channel(0)
 
     lives = 3
     progress = 0.0
+    pygame.event.set_grab(True)
 
     while window.run:
         if lives < 0:
-            pygame.mixer.music.stop() 
-            window.update(input)
+            pygame.event.set_grab(False)
+            window.pgWindow.fill((0,0,0))
+            for star in stars:
+                star.render()
+            for planet in planets:
+                planet.render()
+            for enemy in enemys:
+                enemy.render()
+            window.pgWindow.blit(lossText, (0,0))
+            window.pgWindow.blit(lossPlayer, WINDOW_SIZE2-lossPlayer.get_rect().center)
+            window.update(gameOverinput)
             continue
         elif progress >= TARGET_FUEL:
+            pygame.event.set_grab(False)
             window.pgWindow.fill((0,0,0))
             for star in stars:
                 star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z+window.DT/500)%4)
                 star.render()
+            window.pgWindow.blit(winText, (0,0))
             window.pgWindow.blit(winPlayer, WINDOW_SIZE2-winPlayer.get_rect().center)
-            window.update(input)
+            window.update(gameOverinput)
             continue
         player.update()
         for enemy in enemys:
@@ -223,9 +274,9 @@ if __name__ == "__main__":
         for planet in planets:
             if (player.pos-planet.pos-Vector2(planet.radius)).magnitude_squared() <= planet.radius*planet.radius*4:
                 onPlanet = True
-                if uniform(0,1)>0.95:
+                if uniform(0,1)>0.94:
                     angle = uniform(0,math.pi*2)
-                    enemys.append(Enemy(planet.pos+Vector2(math.cos(angle)*MAX_RADIUS*7, math.sin(angle)*MAX_RADIUS*7),planet.pos,enemyMoveingImg2, enemyStopedImg1))
+                    enemys.append(Enemy(planet.pos+Vector2(math.cos(angle)*MAX_RADIUS*6, math.sin(angle)*MAX_RADIUS*6),planet.pos,enemyMoveingImg2, enemyStopedImg1))
                 break
         if onPlanet:
             progress+=window.DT
