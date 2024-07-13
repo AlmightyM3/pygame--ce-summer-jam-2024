@@ -16,6 +16,7 @@ MULTI_THREAD = True
 PLAYER_ACCEL = 0.5
 PLAYER_VELO_MAX = 1.4
 PLAYER_DECEL = 0.005
+TARGET_FUEL = 5000
 
 dirPath = os.path.dirname(os.path.abspath(__file__)).lower()
 if "\\" in dirPath:
@@ -202,11 +203,11 @@ if __name__ == "__main__":
     progress = 0.0
 
     while window.run:
-        if lives <= 0:
+        if lives < 0:
             pygame.mixer.music.stop() 
             window.update(input)
             continue
-        elif progress >= 2500:
+        elif progress >= TARGET_FUEL:
             window.pgWindow.fill((0,0,0))
             for star in stars:
                 star.pos = Vector3(star.pos.x, star.pos.y,(star.pos.z+window.DT/500)%4)
@@ -224,11 +225,11 @@ if __name__ == "__main__":
                 onPlanet = True
                 if uniform(0,1)>0.95:
                     angle = uniform(0,math.pi*2)
-                    enemys.append(Enemy(planet.pos+Vector2(math.cos(angle)*MAX_RADIUS*4, math.sin(angle)*MAX_RADIUS*4),planet.pos,enemyMoveingImg2, enemyStopedImg1))
+                    enemys.append(Enemy(planet.pos+Vector2(math.cos(angle)*MAX_RADIUS*7, math.sin(angle)*MAX_RADIUS*7),planet.pos,enemyMoveingImg2, enemyStopedImg1))
                 break
         if onPlanet:
             progress+=window.DT
-            if progress >= 2500:
+            if progress >= TARGET_FUEL:
                 pygame.mixer.music.set_volume(1)
                 pygame.mixer.music.load(f"{dirPath}/LevelComplete.mp3")
                 pygame.mixer.music.play()
@@ -244,7 +245,7 @@ if __name__ == "__main__":
 
         window.pgWindow.fill((255,0,255), rect=pygame.Rect((85,45),((WINDOW_SIZE.x-190), 60)))
         window.pgWindow.fill((0,0,0), rect=pygame.Rect((90,50),((WINDOW_SIZE.x-200), 50)))
-        window.pgWindow.fill((255,0,255), rect=pygame.Rect((90,50),((WINDOW_SIZE.x-200)*((progress)/2500), 50)))
+        window.pgWindow.fill((255,0,255), rect=pygame.Rect((90,50),((WINDOW_SIZE.x-200)*((progress)/TARGET_FUEL), 50)))
         window.pgWindow.blit(fuelIcon, Vector2(55,80)-fuelIcon.get_rect().center)
         for i in range(lives):
             window.pgWindow.blit(lifeIcon, Vector2(WINDOW_SIZE.x-60,80+i*75)-lifeIcon.get_rect().center)
