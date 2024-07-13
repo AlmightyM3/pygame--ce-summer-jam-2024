@@ -1,0 +1,169 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/main.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": false
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "icon_file",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/SpaceshipOn.ico"
+  },
+  {
+   "optionDest": "name",
+   "value": "Powered By Planets"
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Bump.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/CollectingGas.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/EnemyEnginesOn.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/EvilSpaceship3.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/EvilSpaceship3On.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Explosion.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Fail.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Fuel.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/LevelComplete.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Lives.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Loading.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/loading.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Loss.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/mainTheme.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/PlayerEnginesOn.mp3;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/PlayerExplosion.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Spaceship.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/SpaceshipFacingCameraOn.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/SpaceshipOn.ico;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/SpaceshipOn.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/TimeIt.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Win.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Window.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/noise;noise/"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/loadingV2.png;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/matth/Desktop/Projects/pygame-ce-summer-jam-2024/Explosion.mp3;."
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}

@@ -135,7 +135,7 @@ def genPlanets():
                     planets.append(Planet(pos, choice(noiseImgs)))
                     #enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
                 if main:
-                    window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((rx.index(x)+1)/len(rx)), 50)))
+                    window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-300),((WINDOW_SIZE.x-200)*((rx.index(x)+1)/len(rx)), 50)))
                     window.update(input)
                 if not window.run:
                     return
@@ -156,7 +156,7 @@ def genPlanets():
                 planets.append(Planet(pos, choice(noiseImgs)))
                 #enemys.append(Enemy(pos,pos,enemyMoveingImg2, enemyStopedImg1))
             window.update(input)
-            window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-150),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
+            window.pgWindow.fill((0,255,0), rect=pygame.Rect((100,WINDOW_SIZE.y-300),((WINDOW_SIZE.x-200)*((r.index(x)+1)/len(r)), 50)))
             if not window.run:
                 return
 
@@ -197,7 +197,8 @@ if __name__ == "__main__":
             restart()
 
     window = Window("It works?", WINDOW_SIZE)
-    window.pgWindow.blit(pygame.image.load(dirPath+"/loading.png"), (0,0))
+    pygame.display.set_icon(pygame.image.load(dirPath+"/SpaceshipOn.png"))
+    window.pgWindow.blit(pygame.image.load(dirPath+"/loadingV2.png"), (0,0))
     window.update(input)
     pygame.mixer.init()
     pygame.mixer.music.load(f"{dirPath}/loading.mp3")
@@ -235,7 +236,7 @@ if __name__ == "__main__":
         pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
         pygame.mixer.music.play()
         pygame.mixer.set_num_channels(4)
-        bumpEffect = pygame.mixer.Sound("Explosion.mp3")
+        bumpEffect = pygame.mixer.Sound(f"{dirPath}/Explosion.mp3")
         bumpChannel = pygame.mixer.Channel(0)
 
     lives = 3
