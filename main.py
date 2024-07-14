@@ -173,6 +173,8 @@ def restart():
     global player, stars, planets, enemys, lives, progress
     window.pgWindow.blit(pygame.image.load(dirPath+"/loadingV2.png"), (0,0))
     window.update(input)
+    if not window.run:
+        return
     pygame.mixer.music.load(f"{dirPath}/loading.mp3")
     pygame.mixer.music.play()
     player = Player(Vector2(0,0), 1/32, "/SpaceshipOn.png", "/Spaceship.png")
@@ -180,14 +182,15 @@ def restart():
     planets = []
     enemys = []
     genPlanets()
-    if window.run:
-        pygame.mixer.music.set_volume(0.83)
-        pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
-        pygame.mixer.music.play()
+    if not window.run:
+        return
+    pygame.mixer.music.set_volume(0.83)
+    pygame.mixer.music.load(f"{dirPath}/mainTheme.mp3")
+    pygame.mixer.music.play()
 
-        lives = 3
-        progress = 0.0
-        pygame.event.set_grab(True)
+    lives = 3
+    progress = 0.0
+    pygame.event.set_grab(True)
 
 if __name__ == "__main__":
     def input(input):
